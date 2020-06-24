@@ -1,9 +1,6 @@
 import { Router } from 'express';
-import FileHelper from './app/helpers/FileHelper';
 
 import RuleController from './app/controllers/RuleController';
-
-FileHelper.setFiles();
 
 const routes = new Router();
 

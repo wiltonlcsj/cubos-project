@@ -1,4 +1,4 @@
-import { isEqual, isAfter, isBefore, parse, getDay, isWithinRange, eachDay, format } from 'date-fns';
+import { isEqual, isAfter, isBefore, parse, getDay, isWithinInterval, eachDayOfInterval, format } from 'date-fns';
 
 class Rule {
   checkFieldsOnlyOne(body, fields = ['weekdays', 'daily', 'date']) {
@@ -74,12 +74,12 @@ class Rule {
     const parsedStart = parse(startdate, 'dd-MM-yyyy', new Date());
     const parsedEnd = parse(enddate, 'dd-MM-yyyy', new Date());
 
-    let founded = content.filter((item) => {
+    let found = content.filter((item) => {
       if (item.date !== null) {
-        const parsedDate = parse(date, 'dd-MM-yyyy', new Date());
-        return isWithinRange(parsedDate, startdate, enddate);
+        const parsedDate = parse(item.date, 'dd-MM-yyyy', new Date());
+        return isWithinInterval(parsedDate, { start: parsedStart, end: parsedEnd });
       } else if (item.weekdays !== null) {
-        return eachDay(parsedStart, parsedEnd).filter((date) => {
+        return eachDayOfInterval({ start: parsedStart, end: parsedEnd }).filter((date) => {
           return item.weekdays.filter((weekday) => {
             return getDay(date) === weekday;
           });
@@ -89,17 +89,44 @@ class Rule {
       return item.daily;
     });
 
-    return eachDay(parsedStart, parsedEnd).map((date) => {
+    return eachDayOfInterval({ start: parsedStart, end: parsedEnd }).map((date) => {
+      const formattedDate = format(date, 'dd-MM-yyyy');
+      const intervals = found.filter((item) => {
+        return (item.daily) || (item.date !== null && formattedDate === item.date) || (item.weekdays !== null && item.weekdays.filter((weekday) => {
+          return getDay(date) === weekday;
+        }).length !== 0);
+      }).map((rule) => {
+        return rule.intervals;
+      });
+
+      let concatIntervals = [];
+      intervals.forEach((element) => {
+        concatIntervals = concatIntervals.concat(element);
+      });
+
+      /*
+      * Change name of attribute begin to start
+      * Order schedule by time asc
+      */
+      const orderdedIntervals = concatIntervals.map((item) => {
+        return { start: item.begin, end: item.end };
+      }).sort((a, b) => {
+        const parsedcurrent = parseInt(a.start.replace(/:/, ''), 10);
+        const parsednext = parseInt(b.start.replace(/:/, ''), 10);
+
+        if (parsedcurrent < parsednext)
+          return -1;
+
+        if (parsedcurrent > parsednext)
+          return 1;
+
+        return 0;
+      });
+
       return {
-        day: format(date, 'dd-MM-yyyy'), intervals: founded.filter((item) => {
-          return (item.daily) || (item.date !== null && date === item.date) || (item.weekdays.filter((weekday) => {
-            return getDay(date) === weekday;
-          })).length !== 0;
-        }).map((rule) => {
-          return rule.intervals;
-        })
+        day: format(date, 'dd-MM-yyyy'), intervals: orderdedIntervals
       }
-    })
+    }).filter((intervalDate) => intervalDate.intervals.length !== 0);
   }
 }
 

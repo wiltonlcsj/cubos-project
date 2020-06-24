@@ -3,18 +3,6 @@ import path from 'path';
 const fsPromises = fs.promises;
 
 class FileHelper {
-  async setFiles() {
-    try {
-      //Todo Descomentar
-      //await fsPromises.writeFile(path.resolve('./data/rules.json'), JSON.stringify([]), 'utf-8');
-      return true;
-    } catch (error) {
-      console.log('Something happened');
-      console.log(error);
-      return false;
-    }
-  }
-
   async readFromFile(file, encode = 'utf-8') {
     try {
       return JSON.parse(await fsPromises.readFile(file, encode))

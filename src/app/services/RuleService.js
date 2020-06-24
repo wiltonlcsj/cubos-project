@@ -3,10 +3,12 @@ import FileHelper from '../helpers/FileHelper';
 import ModelHelper from '../helpers/ModelHelper';
 import Rule from '../models/Rule';
 import path from 'path';
-import { parse, isSameDay, isAfter, isPast, addMinutes, isEqual } from 'date-fns';
+import {
+  parse, isSameDay, isAfter, isPast, addMinutes, isEqual,
+  setDate, setMonth, setYear, isDate, getDate, getYear, getMonth
+} from 'date-fns';
 
 const filejson = path.resolve('./data/rules.json');
-
 class RuleService {
   async createRule(body) {
     const schema = Yup.object().shape({
@@ -29,7 +31,16 @@ class RuleService {
         }).test(
           'isPast',
           '${path} is in the past',
-          (value) => !isPast(value),
+          (value) => {
+            if (!body.date)
+              return true;
+
+            let date = body.date;
+            if (!isDate(date))
+              date = parse(body.date, 'dd-MM-yyyy', new Date());
+
+            return !isPast(setYear(setMonth(setDate(value, getDate(date)), getMonth(date)), getYear(date)));
+          },
         ).required(),
         end: Yup.date().transform((castValue, originalValue) => {
           return parse(`${originalValue}`, 'HH:mm', new Date())
@@ -100,8 +111,24 @@ class RuleService {
     }
   }
 
-  //Todo Validar campos
   async listRules(page = 1, per_page = 10) {
+    const schema = Yup.object().shape({
+      page: Yup.number().integer().notRequired(),
+      per_page: Yup.number().integer().notRequired(),
+    });
+
+    try {
+      await schema.validate({ page, per_page })
+    } catch (err) {
+      return {
+        status: 400, body: {
+          message: 'Validation fails', errors: err.errors.map((item) => {
+            return { element: err.path, messages: item }
+          })
+        }
+      };
+    }
+
     const contentRule = await FileHelper.readFromFile(filejson);
     const base_index = (Math.abs(page) - 1) * Math.abs(per_page);
     const last_index = Math.abs(page) * Math.abs(per_page);
@@ -110,16 +137,41 @@ class RuleService {
     return { status: 200, body: { rules: result } }
   }
 
-  //Todo Validar campos
   async listSchedule(startday, endday, page = 1, per_page = 10) {
+    const schema = Yup.object().shape({
+      page: Yup.number().integer().notRequired(),
+      per_page: Yup.number().integer().notRequired(),
+      startday: Yup.date().transform(function (value, originalvalue) {
+        if (this.isType(value)) return value;
+        value = parse(`${originalvalue}`, 'dd-MM-yyyy', new Date());
+        return (value) ? value : undefined;
+      }).required(),
+      endday: Yup.date().transform(function (value, originalvalue) {
+        if (this.isType(value)) return value;
+        value = parse(`${originalvalue}`, 'dd-MM-yyyy', new Date());
+        return (value) ? value : undefined;
+      }).required(),
+    });
+
+    try {
+      await schema.validate({ page, per_page, startday, endday })
+    } catch (err) {
+      return {
+        status: 400, body: {
+          message: 'Validation fails', errors: err.errors.map((item) => {
+            return { element: err.path, messages: item }
+          })
+        }
+      };
+    }
+
     const contentRule = await FileHelper.readFromFile(filejson);
     const searchedRules = Rule.searchByDates(contentRule, startday, endday);
-
     const base_index = (Math.abs(page) - 1) * Math.abs(per_page);
     const last_index = Math.abs(page) * Math.abs(per_page);
 
     const result = searchedRules.slice(base_index, last_index);
-    return { status: 200, body: { rules: result } }
+    return { status: 200, body: result }
   }
 }
 
