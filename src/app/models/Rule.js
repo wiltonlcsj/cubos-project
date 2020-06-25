@@ -8,7 +8,7 @@ class Rule {
    * Function that checks if exists a schedule conflict if the new Rule be saved
    * @param {object} { date = null, weekdays = null, daily = false, intervals } object with fields to new rule
    * @param {Array<object>} array_data Array of existing objects from json
-   * @returns {object{success, errors}} Returns a object with success attribute that indicates if exists a schedule conflict
+   * @returns {object} Returns a object with success attribute that indicates if exists a schedule conflict
    * @memberof Rule
    */
   checkConflict({ date = null, weekdays = null, daily = false, intervals }, array_data) {

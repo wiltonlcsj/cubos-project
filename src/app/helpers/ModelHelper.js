@@ -17,7 +17,7 @@ class ModelHelper {
    * Function to validate if only of given fields are present on request
    * @param {object} body Body content from Http request
    * @param {Array<string>} fields Array with name of the fields that must be tested
-   * @returns {boolean} True if just one was specified and false othewise
+   * @returns {boolean} false if just one was specified and true if more than one was specified
    * @memberof ModelHelper
    */
   checkFieldsOnlyOne(body, fields) {
