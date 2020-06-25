@@ -27,7 +27,12 @@ class RuleService {
   async createRule(body) {
     const schema = Yup.object().shape({
       daily: Yup.boolean().notRequired().oneOf([true]),
-      weekdays: Yup.array().of(Yup.number().integer().min(0).max(6)).notRequired(),
+      weekdays: Yup.array().of(Yup.number().integer().min(0).max(6))
+        .test(
+          'uniqueDay',
+          '${path} must not repeat array values',
+          (value) => value.length === new Set(value.map(a => a)).size,
+        ).notRequired(),
       date: Yup.date().transform(function (value, originalvalue) {
         if (this.isType(value)) return value;
         value = parse(`${originalvalue}`, 'dd-MM-yyyy', new Date());
@@ -35,10 +40,7 @@ class RuleService {
       }).test(
         'isSameDay',
         '${path} is not a valid day',
-        (value) => {
-          //Checks if date is in the past
-          return body.date ? isSameDay(new Date(), value) || isAfter(value, new Date()) : true;
-        },
+        (value) => body.date ? (isSameDay(new Date(), value) || isAfter(value, new Date())) : true,
       ).notRequired(),
       intervals: Yup.array().of(Yup.object({
         begin: Yup.date().transform(function (castValue, originalValue) {
@@ -171,7 +173,7 @@ class RuleService {
     const last_index = Math.abs(page) * Math.abs(per_page);
 
     const result = contentRule.slice(base_index, last_index);
-    return { status: 200, body: { rules: result } }
+    return { status: 200, body: result }
   }
 
   /**

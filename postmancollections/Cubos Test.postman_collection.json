@@ -1,0 +1,162 @@
+{
+	"info": {
+		"_postman_id": "6ef5749d-6a50-4d32-8095-e2130ca6de75",
+		"name": "Cubos Test",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Criar regra para data",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"date\": \"30-06-2020\",\r\n    \"intervals\": [{\"begin\": \"18:00\", \"end\": \"19:00\"}]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/rules",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"rules"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Criar regra para diariamente",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"daily\": true,\r\n    \"intervals\": [{\"begin\": \"17:00\", \"end\": \"17:59\"}]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/rules",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"rules"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Criar regra para dias da semana",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"weekdays\": [1, 2],\r\n    \"intervals\": [{\"begin\": \"16:00\", \"end\": \"16:30\"}]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/rules",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"rules"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Remover Regra",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/rules/95079632",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"rules",
+						"95079632"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Listar Horários",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/search-schedule?startday=25-01-2018&endday=29-01-2018",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"search-schedule"
+					],
+					"query": [
+						{
+							"key": "startday",
+							"value": "25-01-2018"
+						},
+						{
+							"key": "endday",
+							"value": "29-01-2018"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Listar Regras",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/rules",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"rules"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"protocolProfileBehavior": {}
+}

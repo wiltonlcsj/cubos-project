@@ -32,3 +32,6 @@
 ### Para deixar o servidor rodando com Yarn
 1. `yarn dev` --> Inicia em modo debug colocando as saídas no console
 2. `yarn start` --> Inicia em modo de produção
+
+### Observações
+* No caso de dias da semana, domingo corresponde ao valor 0, segunda valor 1, e assim sucessivamente
