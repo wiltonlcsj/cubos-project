@@ -1,19 +1,23 @@
 import { isEqual, isAfter, isBefore, parse, getDay, isWithinInterval, eachDayOfInterval, format } from 'date-fns';
-
+/**
+ * Class that represents a model Rule
+ * @class Rule
+ */
 class Rule {
-  checkFieldsOnlyOne(body, fields = ['weekdays', 'daily', 'date']) {
-    let initialValue = 0;
-    return fields.reduce((sum, actual) => {
-      return body[actual] !== undefined ? ++initialValue : initialValue;
-    }, initialValue) !== 1;
-  }
-
+  /**
+   * Function that checks if exists a schedule conflict if the new Rule be saved
+   * @param {object} { date = null, weekdays = null, daily = false, intervals } object with fields to new rule
+   * @param {Array<object>} array_data Array of existing objects from json
+   * @returns {object{success, errors}} Returns a object with success attribute that indicates if exists a schedule conflict
+   * @memberof Rule
+   */
   checkConflict({ date = null, weekdays = null, daily = false, intervals }, array_data) {
     let exists = [];
     for (const interval of intervals) {
       const begin = parse(interval.begin, 'HH:mm', new Date());
       const end = parse(interval.end, 'HH:mm', new Date());
 
+      //Get the rules that has the same time from new Rule to be saved
       exists = exists.concat(array_data.filter((item) => {
         return item.intervals.filter((existent_rule_interval) => {
           const existent_begin = parse(existent_rule_interval.begin, 'HH:mm', new Date());
@@ -70,28 +74,27 @@ class Rule {
     return { success: errors.length === 0, errors };
   }
 
+
+  /**
+   * Function that searches and returns a list with schedules in dates parameters interval
+   * @param {Array<object>} content Arrange set of existing schedules
+   * @param {string} startdate Start date of filter in format dd-MM-yyyy
+   * @param {string} enddate End date of filter in format dd-MM-yyyy
+   * @returns {Array<object>} A array with all days that has schedule on dates interval
+   * @memberof Rule
+   */
   searchByDates(content, startdate, enddate) {
     const parsedStart = parse(startdate, 'dd-MM-yyyy', new Date());
     const parsedEnd = parse(enddate, 'dd-MM-yyyy', new Date());
 
-    let found = content.filter((item) => {
-      if (item.date !== null) {
-        const parsedDate = parse(item.date, 'dd-MM-yyyy', new Date());
-        return isWithinInterval(parsedDate, { start: parsedStart, end: parsedEnd });
-      } else if (item.weekdays !== null) {
-        return eachDayOfInterval({ start: parsedStart, end: parsedEnd }).filter((date) => {
-          return item.weekdays.filter((weekday) => {
-            return getDay(date) === weekday;
-          });
-        }).length !== 0;
-      }
-
-      return item.daily;
-    });
-
+    /*
+    * 1. Iterates over each day in startdate and enddate interval
+    * 2. Check for each day if it has a schedule
+    * 3. Mount the object to response
+    */
     return eachDayOfInterval({ start: parsedStart, end: parsedEnd }).map((date) => {
       const formattedDate = format(date, 'dd-MM-yyyy');
-      const intervals = found.filter((item) => {
+      const intervals = content.filter((item) => {
         return (item.daily) || (item.date !== null && formattedDate === item.date) || (item.weekdays !== null && item.weekdays.filter((weekday) => {
           return getDay(date) === weekday;
         }).length !== 0);
@@ -105,8 +108,9 @@ class Rule {
       });
 
       /*
-      * Change name of attribute begin to start
-      * Order schedule by time asc
+      * 1. Change name of attribute begin to start
+      * 2. Order schedule by time asc
+      * 3. Remove dates that doesn't has a schedule
       */
       const orderdedIntervals = concatIntervals.map((item) => {
         return { start: item.begin, end: item.end };

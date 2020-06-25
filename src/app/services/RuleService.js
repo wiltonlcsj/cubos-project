@@ -9,7 +9,21 @@ import {
 } from 'date-fns';
 
 const filejson = path.resolve('./data/rules.json');
+
+/**
+ * Class that receives the body request and execute the operations
+ * @class RuleService
+ */
 class RuleService {
+
+  /**
+   * Function to create a new rule
+   * @async
+   * @param {object} body Object body from http request
+   * @returns {object} Object with status and body attributes, body can have a set of errors or the new object created
+   * and status has http code to send in response
+   * @memberof RuleService
+   */
   async createRule(body) {
     const schema = Yup.object().shape({
       daily: Yup.boolean().notRequired().oneOf([true]),
@@ -22,6 +36,7 @@ class RuleService {
         'isSameDay',
         '${path} is not a valid day',
         (value) => {
+          //Checks if date is in the past
           return body.date ? isSameDay(new Date(), value) || isAfter(value, new Date()) : true;
         },
       ).notRequired(),
@@ -35,6 +50,7 @@ class RuleService {
             if (!body.date)
               return true;
 
+            //Check in case of given a date if schedule is in the past
             let date = body.date;
             if (!isDate(date))
               date = parse(body.date, 'dd-MM-yyyy', new Date());
@@ -48,6 +64,7 @@ class RuleService {
           'isAfterBegin',
           '${path} is before or equal to begin',
           function (value) {
+            //End of interval must be one minute later at least
             const { begin } = this.parent;
             return isAfter(value, addMinutes(begin, 1)) || isEqual(value, addMinutes(begin, 1))
           },
@@ -73,7 +90,7 @@ class RuleService {
     /*
     * Check if rule has more than 1 attribute (daily, weekdays, date) or none
     */
-    if (Rule.checkFieldsOnlyOne(body)) {
+    if (ModelHelper.checkFieldsOnlyOne(body, ['weekdays', 'daily', 'date'])) {
       return { status: 400, body: { message: 'Validation fails', errors: ['You need to pass only one of date, daily or weekdays'] } };
     }
 
@@ -96,6 +113,14 @@ class RuleService {
     return { status: 200, body: { id, date, weekdays, daily, intervals } }
   }
 
+  /**
+   * Functions to delete a rule from json with a given id
+   * @async
+   * @param {number} id Identifier of the rule must be deleted
+   * @returns {object} Object with status and body attributes, body can have a set of errors or the message to success
+   * and status has http code to send in response
+   * @memberof RuleService
+   */
   async deleteRule(id) {
     const contentRule = await FileHelper.readFromFile(filejson);
     const ruleIndex = contentRule.findIndex((item) => {
@@ -111,12 +136,22 @@ class RuleService {
     }
   }
 
+  /**
+   * Function that lists all rules in set
+   * @async
+   * @param {number} [page=1] Number of the requested page
+   * @param {number} [per_page=10] Number of sets that each page must have
+   * @returns {object} Object with status and body attributes, body has a set of rules
+   * and status has http code to send in response
+   * @memberof RuleService
+   */
   async listRules(page = 1, per_page = 10) {
     const schema = Yup.object().shape({
       page: Yup.number().integer().notRequired(),
       per_page: Yup.number().integer().notRequired(),
     });
 
+    //Validate the body with given schema
     try {
       await schema.validate({ page, per_page })
     } catch (err) {
@@ -130,6 +165,8 @@ class RuleService {
     }
 
     const contentRule = await FileHelper.readFromFile(filejson);
+
+    //Calculate the first and last index of set result
     const base_index = (Math.abs(page) - 1) * Math.abs(per_page);
     const last_index = Math.abs(page) * Math.abs(per_page);
 
@@ -137,6 +174,17 @@ class RuleService {
     return { status: 200, body: { rules: result } }
   }
 
+  /**
+   * Function to list all schedules in given intervals of date
+   * @async
+   * @param {string} startday Start date of filter in format dd-MM-yyyy
+   * @param {string} endday End date of filter in format dd-MM-yyyy
+   * @param {number} [page=1] Number of the requested page
+   * @param {number} [per_page=10] Number of sets that each page must have
+   * @returns {object} Object with status and body attributes, body has a set of schedules
+   * and status has http code to send in response
+   * @memberof RuleService
+   */
   async listSchedule(startday, endday, page = 1, per_page = 10) {
     const schema = Yup.object().shape({
       page: Yup.number().integer().notRequired(),
@@ -153,6 +201,7 @@ class RuleService {
       }).required(),
     });
 
+    //Validate the body with given schema
     try {
       await schema.validate({ page, per_page, startday, endday })
     } catch (err) {
@@ -167,6 +216,8 @@ class RuleService {
 
     const contentRule = await FileHelper.readFromFile(filejson);
     const searchedRules = Rule.searchByDates(contentRule, startday, endday);
+
+    //Calculate the first and last index of set result
     const base_index = (Math.abs(page) - 1) * Math.abs(per_page);
     const last_index = Math.abs(page) * Math.abs(per_page);
 
