@@ -31,7 +31,12 @@ class RuleService {
         .test(
           'uniqueDay',
           '${path} must not repeat array values',
-          (value) => value.length === new Set(value.map(a => a)).size,
+          (value) => {
+            if (!value)
+              return true;
+
+            return value.length === new Set(value.map(a => a)).size;
+          },
         ).notRequired(),
       date: Yup.date().transform(function (value, originalvalue) {
         if (this.isType(value)) return value;
@@ -40,7 +45,7 @@ class RuleService {
       }).test(
         'isSameDay',
         '${path} is not a valid day',
-        (value) => body.date ? (isSameDay(new Date(), value) || isAfter(value, new Date())) : true,
+        (value) => body.date && value ? (isSameDay(new Date(), value) || isAfter(value, new Date())) : true,
       ).notRequired(),
       intervals: Yup.array().of(Yup.object({
         begin: Yup.date().transform(function (castValue, originalValue) {
@@ -82,9 +87,9 @@ class RuleService {
     } catch (err) {
       return {
         status: 400, body: {
-          message: 'Validation fails', errors: err.errors.map((item) => {
+          message: 'Validation fails', errors: err.errors ? err.errors.map((item) => {
             return { element: err.path, messages: item }
-          })
+          }) : err
         }
       };
     }

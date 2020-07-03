@@ -2,4 +2,4 @@
 package-lock.json
 yarn.lock
 yarn-error.log
-data/*
+data/rules.json
