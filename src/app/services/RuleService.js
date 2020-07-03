@@ -1,4 +1,5 @@
 import * as Yup from 'yup';
+import fs from 'fs';
 import FileHelper from '../helpers/FileHelper';
 import ModelHelper from '../helpers/ModelHelper';
 import Rule from '../models/Rule';
