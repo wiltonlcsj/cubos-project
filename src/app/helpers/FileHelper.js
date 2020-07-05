@@ -42,6 +42,8 @@ class FileHelper {
   async writeOnFile(filepath, content, encode = 'utf-8') {
     try {
       await fsPromises.opendir(path.resolve('./data'));
+      await fsPromises.writeFile(filepath, JSON.stringify(content), encode);
+      return true;
     } catch (err) {
       try {
         await fsPromises.mkdir(path.resolve('./data'));
