@@ -10,7 +10,7 @@
     "yup": "^0.29.1"
   },
   "scripts": {
-    "dev": "nodemon src/server.js",
+    "dev": "nodemon --inspect src/server.js",
     "start": "sucrase-node src/server.js",
     "test": "jest"
   },
