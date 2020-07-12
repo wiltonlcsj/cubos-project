@@ -2,7 +2,7 @@ import { Router } from 'express';
 
 import RuleController from './app/controllers/RuleController';
 
-const routes = new Router();
+const routes = Router();
 
 routes.post('/rules', RuleController.create);
 routes.delete('/rules/:id', RuleController.delete);

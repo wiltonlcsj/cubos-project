@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+
 const fsPromises = fs.promises;
 
 /**
@@ -7,23 +8,31 @@ const fsPromises = fs.promises;
  * @class FileHelper
  */
 class FileHelper {
-
   /**
    * Function that read file from path and return a JSON if successfull
    * @async
    * @param {string} filepath Path to file
-   * @param {string} [encode='utf-8'] The encoding used to read the document
-   * @returns {boolean|object} Returns false if a error occurs or JSON if was successfull 
+   * @returns {boolean|array} Returns false if a error occurs or JSON if was successfull
    * @memberof FileHelper
    */
-  async readFromFile(filepath, encode = 'utf-8') {
+  async readFromFile(
+    filepath: string,
+  ): Promise<boolean | Array<RuleInterface> | [{ [key: string]: string }]> {
     try {
-      return JSON.parse(await fsPromises.readFile(filepath, encode))
-    } catch (error) {
+      const content = await fsPromises.readFile(filepath);
+      if (content) {
+        return JSON.parse(content.toString());
+      }
+      return false;
+    } catch (err) {
       // If no document was found on filepath must create one
       try {
         await this.writeOnFile(filepath, []);
-        return JSON.parse(await fsPromises.readFile(filepath, encode));
+        const content = await fsPromises.readFile(filepath);
+        if (content) {
+          return JSON.parse(content.toString());
+        }
+        return false;
       } catch (error) {
         return false;
       }
@@ -35,22 +44,24 @@ class FileHelper {
    * @async
    * @param {string} filepath Path to file
    * @param {string|object|Array} content Content that must be write on document
-   * @param {string} [encode='utf-8'] The encoding used to write the document
+   * @param {string} [encoding='utf8'] The encoding used to write the document
    * @returns {boolean} Returns false if some error occurs or true if the write was successful
    * @memberof FileHelper
    */
-  async writeOnFile(filepath, content, encode = 'utf-8') {
+  async writeOnFile(
+    filepath: string,
+    content: RuleInterface | RuleInterface[] | [] | [{ [key: string]: string }],
+  ): Promise<boolean> {
     try {
       await fsPromises.opendir(path.resolve('./data'));
-      await fsPromises.writeFile(filepath, JSON.stringify(content), encode);
+      await fsPromises.writeFile(filepath, JSON.stringify(content));
       return true;
     } catch (err) {
       try {
         await fsPromises.mkdir(path.resolve('./data'));
-        await fsPromises.writeFile(filepath, JSON.stringify(content), encode);
+        await fsPromises.writeFile(filepath, JSON.stringify(content));
         return true;
-      }
-      catch (error) {
+      } catch (error) {
         return false;
       }
     }

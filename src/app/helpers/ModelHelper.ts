@@ -3,13 +3,12 @@
  * @class ModelHelper
  */
 class ModelHelper {
-
   /**
    * Function that generates a random id between 1 and 99999999
    * @returns {number} The generated number for Id
    * @memberof ModelHelper
    */
-  generateId() {
+  generateId(): number {
     return Math.floor(Math.random() * (99999999 - 1)) + 0;
   }
 
@@ -20,11 +19,18 @@ class ModelHelper {
    * @returns {boolean} false if just one was specified and true if more than one was specified
    * @memberof ModelHelper
    */
-  checkFieldsOnlyOne(body, fields) {
+  checkFieldsOnlyOne(
+    body: {
+      [key: string]: number | string | Date | null | Array<number> | [];
+    },
+    fields: Array<string>,
+  ) {
     let initialValue = 0;
-    return fields.reduce((sum, actual) => {
-      return body[actual] !== undefined ? ++initialValue : initialValue;
-    }, initialValue) !== 1;
+    return (
+      fields.reduce((sum, actual) => {
+        return body[actual] !== undefined ? ++initialValue : initialValue;
+      }, initialValue) !== 1
+    );
   }
 }
 

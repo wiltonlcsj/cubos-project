@@ -1,6 +1,8 @@
-import FileHelper from '../../src/app/helpers/FileHelper';
+import 'jest-extended';
+import 'jest-chain';
 import fs from 'fs';
 import path from 'path';
+import FileHelper from '@helpers/FileHelper';
 
 const filepath = path.resolve('./data/test.json');
 
@@ -18,6 +20,8 @@ describe('Unit tests for FileHelper', () => {
     await FileHelper.writeOnFile(filepath, [{ test: 'okay' }]);
     const content = await FileHelper.readFromFile(filepath);
     expect(content).toBeArray();
-    expect(content.shift()).toBeObject().toHaveProperty('test');
+    expect((content as Array<{ [key: string]: string }>).shift())
+      .toBeObject()
+      .toHaveProperty('test');
   });
 });

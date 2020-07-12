@@ -7,6 +7,8 @@ import routes from './routes';
  * @class App
  */
 class App {
+  server: express.Application;
+
   constructor() {
     this.server = express();
     this.middlewares();
